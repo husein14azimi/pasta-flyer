@@ -37,6 +37,9 @@ jobs:
         run: pnpm run build
         working-directory: frontend
 
+      - name: Ensure .nojekyll is present in static export output
+        run: touch frontend/out/.nojekyll
+
       - name: Deploy to GitHub Pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
