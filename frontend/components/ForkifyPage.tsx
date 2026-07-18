@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { RotateCcw, Trophy } from 'lucide-react'
 
@@ -59,34 +61,20 @@ export default function ForkifyPage() {
   const lastTimeRef = useRef<number | null>(null)
   const sizeRef = useRef<StageSize>(getStageSize())
   const phaseRef = useRef<Phase>('splash')
-  const bestScoreRef = useRef<number>(readBestScore())
+  const bestScoreRef = useRef<number>(0)
   const resultsRef = useRef<ResultsSummary>(INITIAL_RESULTS)
 
   const [stageSize, setStageSize] = useState<StageSize>(() => getStageSize())
   const [phase, setPhase] = useState<Phase>('splash')
-  const [bestScore, setBestScore] = useState<number>(() => readBestScore())
+  const [bestScore, setBestScore] = useState<number>(0)
   const [results, setResults] = useState<ResultsSummary>(INITIAL_RESULTS)
   const palette = useMemo(() => getForkifyPalette(), [])
 
-  const rotatedStageStyle = useMemo(() => {
-    if (!stageSize.rotated) {
-      return {
-        width: `${stageSize.width}px`,
-        height: `${stageSize.height}px`,
-        transform: 'none',
-        transformOrigin: 'top left',
-      }
-    }
-
-    return {
-      width: `${stageSize.width}px`,
-      height: `${stageSize.height}px`,
-      transform: 'rotate(90deg) translateY(-100%)',
-      transformOrigin: 'top left',
-    }
-  }, [stageSize.height, stageSize.rotated, stageSize.width])
-
   useEffect(() => {
+    // Read local storage on client mount to avoid hydration mismatch
+    bestScoreRef.current = readBestScore()
+    setBestScore(bestScoreRef.current)
+
     const game = createForkifyGame(String(Date.now()), {
       onResults: (summary) => {
         resultsRef.current = summary
@@ -166,6 +154,24 @@ export default function ForkifyPage() {
       }
     }
   }, [palette])
+
+  const rotatedStageStyle = useMemo(() => {
+    if (!stageSize.rotated) {
+      return {
+        width: `${stageSize.width}px`,
+        height: `${stageSize.height}px`,
+        transform: 'none',
+        transformOrigin: 'top left',
+      }
+    }
+
+    return {
+      width: `${stageSize.width}px`,
+      height: `${stageSize.height}px`,
+      transform: 'rotate(90deg) translateY(-100%)',
+      transformOrigin: 'top left',
+    }
+  }, [stageSize.height, stageSize.rotated, stageSize.width])
 
   const stageClassName = 'absolute left-0 top-0 overflow-hidden bg-background'
 
